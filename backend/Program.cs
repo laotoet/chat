@@ -70,15 +70,15 @@ public class SimpleRagService
     private readonly ILogger<SimpleRagService> _logger;
     private readonly ConcurrentDictionary<string, DocumentChunk> _documents = new();
     private readonly ConcurrentDictionary<string, List<ConversationTurn>> _conversations = new();
-    private readonly SemanticTextChunker _textChunker;
+    private readonly HierarchicalDocumentChunker _textChunker;
     private const string OllamaBaseUrl = "http://localhost:11434";
     private const string DocumentsFolder = "Documents"; // Folder containing company documents
 
-    public SimpleRagService(HttpClient httpClient, ILogger<SimpleRagService> logger, ILogger<SemanticTextChunker> chunkLogger)
+    public SimpleRagService(HttpClient httpClient, ILogger<SimpleRagService> logger, ILogger<HierarchicalDocumentChunker> chunkLogger)
     {
         _httpClient = httpClient;
         _logger = logger;
-        _textChunker = new SemanticTextChunker(chunkLogger, maxChunkSize: 1000, chunkOverlap: 200, minChunkSize: 100);
+        _textChunker = new HierarchicalDocumentChunker(chunkLogger, maxChunkSize: 1000, chunkOverlap: 200, minChunkSize: 0);
     }
 
     public async Task InitializeAsync()
@@ -164,6 +164,14 @@ public class SimpleRagService
                 //Console.WriteLine($"Source Document: {chunk.SourceDocumentId}");
                 //Console.WriteLine($"Chunk Index: {chunk.ChunkIndex}");
                 //Console.WriteLine($"Created At: {chunk.CreatedAt}");
+                // if (chunk.Metadata.Count > 0)
+                // {
+                //     Console.WriteLine("Metadata:");
+                //     foreach (var meta in chunk.Metadata)
+                //     {
+                //         Console.WriteLine($"  {meta.Key}: {meta.Value}");
+                //     }
+                // }
                 Console.WriteLine($"{'-' * 40}");
                 //Console.WriteLine("CHUNK CONTENT:");
                 Console.WriteLine(chunk.Content);
@@ -673,17 +681,7 @@ public class EmbeddingResponse
 }
 
 // Data models
-public class DocumentChunk
-{
-    public string Id { get; set; } = string.Empty;
-    public string Content { get; set; } = string.Empty;
-    public string Title { get; set; } = string.Empty;
-    public float[] Embedding { get; set; } = Array.Empty<float>();
-    public DateTime CreatedAt { get; set; }
-    public string SourceDocumentId { get; set; } = string.Empty;
-    public int ChunkIndex { get; set; }
-    public int ContentLength => Content.Length;
-}
+
 
 public class DocumentInfo
 {
